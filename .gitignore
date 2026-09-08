@@ -5,3 +5,4 @@ __pycache__/
 repositories/
 vector_db/
 .vscode/
+backend/.venv/
