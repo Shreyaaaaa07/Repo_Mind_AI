@@ -9,13 +9,37 @@ class EmbeddingService:
         # EMBEDDING MODEL
         # ==================================================
 
+        # Model will NOT be loaded during application startup.
+        # It will be loaded only when an embedding is required.
+        self.model = None
+
+        self.model_name = "all-MiniLM-L6-v2"
+
         # all-MiniLM-L6-v2 generates 384-dimensional
         # sentence/code embeddings.
-        self.model = SentenceTransformer(
-            "all-MiniLM-L6-v2"
-        )
-
         self.vector_size = 384
+
+    # ==================================================
+    # LAZY LOAD MODEL
+    # ==================================================
+
+    def _get_model(self):
+
+        if self.model is None:
+
+            print(
+                "Loading embedding model..."
+            )
+
+            self.model = SentenceTransformer(
+                self.model_name
+            )
+
+            print(
+                "Embedding model loaded."
+            )
+
+        return self.model
 
     # ==================================================
     # GENERATE SINGLE EMBEDDING
@@ -37,7 +61,9 @@ class EmbeddingService:
                 "Text cannot be empty."
             )
 
-        embedding = self.model.encode(
+        model = self._get_model()
+
+        embedding = model.encode(
             text,
             convert_to_numpy=True
         )
@@ -67,7 +93,7 @@ class EmbeddingService:
 
         """
         Convert multiple text/code chunks
-        into 384-dimensional embedding vectors.
+        into embedding vectors.
         """
 
         if not texts:
@@ -87,10 +113,16 @@ class EmbeddingService:
                 )
 
         # --------------------------------------------------
+        # Load model only when required
+        # --------------------------------------------------
+
+        model = self._get_model()
+
+        # --------------------------------------------------
         # Generate embeddings
         # --------------------------------------------------
 
-        embeddings = self.model.encode(
+        embeddings = model.encode(
 
             texts,
 
